@@ -12,7 +12,7 @@ Program that translates a proprietary protocol to a public standard
 
 After opening this repo in VSCode, PlatformIO should automatically initialize and fetch all dependencies. In the end, you should have these contents in the workspace bottom bar where 'tick' is the Build command and 'arrow' is Flush.
 
-/assets/images/screen.png
+![](/assets/images/screen.png)
 
 If not then tap the PlatformIO icon on the left sidebar to start initializing.
 
