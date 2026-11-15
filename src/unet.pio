@@ -1,0 +1,59 @@
+;
+.define dly 3 ; delay(to get twice frequency of serial data(24.56Mhz/([dly+1](1 from instruction)*32(bits)*2(channels)))≈2*48KHz)
+;
+
+.program unet
+;
+
+;
+; I2S send data
+; fs: 48KHz
+; PIO Clock freq: 24.56MHz (196.5MHz / 8)
+; Bit depth: 32bit
+; This program generates 1 output on 1 pin (per state machine)
+;
+.program i2s_dout
+
+    wait 1 gpio 25
+.wrap_target
+    set y 30 [dly-1]
+    pull block
+loopL:
+    out pins 1 [dly]
+    jmp y-- loopL [dly]
+    out pins 1 [dly]
+    set y 30 [dly-1]
+    pull block
+loopR:
+    out pins 1 [dly]
+    jmp y-- loopR [dly]
+    out pins 1 [dly]
+.wrap
+;
+; The program generates 2 outputs on 2 separate consecutive pins
+; two signal lines (BCLKCK and LRCLK) are driven by "side set" functions
+; side pin base = BCLK, pin base +1 = LRCLK
+;
+.program i2s_clk
+
+.side_set 2
+    set pins 1 side 0b01
+    nop [dly-1] side 0b01 ;get in sync with data output
+.wrap_target
+    set y 30 side 0b01
+loopLCLK:
+    nop [dly] side 0b00
+    nop side 0b01
+    jmp y-- loopLCLK [dly-1] side 0b01
+    nop [dly-2] side 0b00
+    nop [dly-2] side 0b10
+    nop [dly-1] side 0b11
+    set y 30 side 0b11
+loopRCLK:
+    nop [dly] side 0b10
+    nop side 0b11
+    jmp y-- loopRCLK [dly-1] side 0b11
+    nop [dly-2] side 0b10
+    nop [dly-2] side 0b00
+    nop [dly-1] side 0b01
+.wrap
